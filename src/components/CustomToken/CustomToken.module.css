@@ -1,0 +1,10 @@
+.textarea{
+    width: 100%;
+    height: 6rem;
+}
+.control {
+    display: flex;
+    justify-content: left;
+    flex-direction: column;
+}
+

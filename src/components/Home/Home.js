@@ -1,5 +1,4 @@
 import React, {useState} from 'react';
-
 import Card from '../UI/Card/Card';
 import HomeClasses from './Home.module.css';
 import Button from "../UI/Button/Button";
@@ -17,7 +16,7 @@ const Home = (props) => {
 	}
 	const securedEndpoint = () => {
 		axios.get("http://localhost:8080/api/auth/dev", {headers:
-            {Authorization: "Bearer " + sessionStorage.getItem('id_token')}})
+            {Authorization: "Bearer " + localStorage.getItem('id_token')}})
 			.then(response => {
 				setServerResponse(response.data);
 			})

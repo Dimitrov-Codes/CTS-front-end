@@ -4,10 +4,12 @@ import Home from './components/Home/Home';
 import MainHeader from './components/MainHeader/MainHeader';
 import AuthContext from "./store/auth-context";
 import axios from "axios";
+import CustomToken from "./components/CustomToken/CustomToken";
 
 function App() {
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
-
+	const [token, setToken] = useState("");
+	const [customTokenMode, setCustomTokenMode] = useState(false);
 	useEffect(() => {
 		const storedUserLoggedInInformation = localStorage.getItem('isLoggedIn');
 
@@ -15,26 +17,29 @@ function App() {
 			setIsLoggedIn(true);
 		}
 	}, []);
-
-	const guestMode  = () => {
-		window.sessionStorage.removeItem('id_token');
+	const customToken = () => {
+		localStorage.setItem('id_token', token)
+		setIsLoggedIn(true);
+		setCustomTokenMode(false);
+		localStorage.setItem('isLoggedIn', '1');
+	}
+	const guestMode = () => {
 		localStorage.removeItem('id_token');
 		setIsLoggedIn(true);
 	}
 
 	const loginHandler = (email, password) => {
-		// We should of course check email and password
-		// But it's just a demo anyway
-		const clientId = '1c2a541b-e170-46d6-937c-223c553c1494';
-		const clientSecret = 'c6L8Q~sRZUyuN254zroz02KYGIV1HOTrX93Bydg3'
-		axios.post(`https://login.microsoftonline.com/bf58d208-4c98-44e6-9038-f51ff05cdc41/oauth2/v2.0/token
-		?username=${email}&password=${password}&client_id=1c2a541b-e170-46d6-937c-223c553c1494
-		&client_secret=c6L8Q~sRZUyuN254zroz02KYGIV1HOTrX93Bydg3&scope=openid&response_type=token&grant_type=client_credentials`)
+
+		axios.post(`http://localhost:8080/api/auth/login`, {
+			"username": email,
+			"password": password
+		})
 			.then(res => {
-			console.log(res);
-			localStorage.setItem('isLoggedIn', '1');
-			setIsLoggedIn(true);
-		}).catch(err => {
+				console.log(res.data);
+				localStorage.setItem("id_token", res.data)
+				localStorage.setItem('isLoggedIn', '1');
+				setIsLoggedIn(true);
+			}).catch(err => {
 			console.log(err);
 		})
 
@@ -42,21 +47,25 @@ function App() {
 
 	const logoutHandler = () => {
 		localStorage.removeItem('isLoggedIn');
-		sessionStorage.removeItem('id_token');
+		localStorage.removeItem('id_token');
 		setIsLoggedIn(false);
 	};
 
 	return (<React.Fragment>
-			<AuthContext.Provider value={{
-				isLoggedIn: isLoggedIn, onLogout: logoutHandler
-			}}>
-				<MainHeader isAuthenticated={isLoggedIn} onLogout={logoutHandler}/>
-				<main>
-					{!isLoggedIn && <Login onLogin={loginHandler} continueAsGuest={guestMode}/>}
-					{isLoggedIn && <Home/>}
-				</main>
-			</AuthContext.Provider>
-		</React.Fragment>);
+		<AuthContext.Provider value={{
+			isLoggedIn: isLoggedIn, onLogout: logoutHandler
+		}}>
+			<MainHeader isAuthenticated={isLoggedIn} onLogout={logoutHandler}/>
+			<main>
+				{!customTokenMode && !isLoggedIn && <Login onLogin={loginHandler} continueAsGuest={guestMode} setCustomTokenMode={setCustomTokenMode}/>}
+				{!customTokenMode && isLoggedIn && <Home/>}
+				{customTokenMode && <CustomToken loginWithCustomToken={customToken} setToken={setToken}
+															goBack={() => setCustomTokenMode(false)}
+				/>}
+				{}
+			</main>
+		</AuthContext.Provider>
+	</React.Fragment>);
 }
 
 export default App;
